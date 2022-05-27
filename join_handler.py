@@ -13,7 +13,7 @@ def join(self, joining_addr):
     # General case
     else:
 
-        # Sending packet with the address and key associated with new user to the known user
+        # Send packet with the address and key associated with new user to the known user
         # This packet is received, parsed and processed in handleConnection function
         msg = self.format_msg(
             "place_user", new_user_addr=self.my_addr, key=self.key)
@@ -28,7 +28,7 @@ def place_user(self, key, new_user_addr):
 
         self.two_user_join(new_user_addr)
 
-        # Updating current user's state variables
+        # Update current user's state variables
         self.successor = self.predecessor = new_user_addr
 
     # General case
@@ -37,14 +37,14 @@ def place_user(self, key, new_user_addr):
         successor_key = self.hasher(
             self.successor[0] + str(self.successor[1]))
 
-        # Checking all conditions to confirm that new user should be current user's successor
+        # Check all conditions to confirm that new user should be current user's successor
         if ((self.key < successor_key and self.key <= key < successor_key) or
                 (self.key > successor_key and not (successor_key <= key < self.key))):
 
             self.general_join(new_user_addr)
             self.successor = new_user_addr
 
-        # If none of the conditions are met, the search request is forwarded to current user's successor
+        # If none of the conditions are met, forward search request to current user's successor
         else:
             self.forward_search_request(key, new_user_addr)
 
@@ -55,7 +55,7 @@ def two_user_join(self, new_user_addr):
     Network state: Only one user exists in network
     '''
 
-    # Sending join info to the new user
+    # Send join info to the new user
     msg = self.format_msg(
         "update_both", predecessor=self.my_addr, successor=self.my_addr)
     self.send_packet(new_user_addr, msg)
@@ -67,12 +67,12 @@ def general_join(self, new_user_addr):
     Network state: More than two users exist in network
     '''
 
-    # Sending join info to the new user
+    # Send join info to the new user
     msg = self.format_msg(
         "update_both", predecessor=self.my_addr, successor=self.successor)
     self.send_packet(new_user_addr, msg)
 
-    # Sending join info to successor
+    # Send join info to successor
     # (Successor needs to update its predecessor to new_user)
     new_key = self.hasher(new_user_addr[0] + str(new_user_addr[1]))
     msg = self.format_msg("update_predecessor_and_files",
