@@ -1,5 +1,5 @@
 """ network_join_handler.py
-This file handles all functionality required to successfully allow a user to join the network. 
+This module handles all functionality required to successfully allow a user to join the network. 
 """
 
 # Called on the user that's joining the network

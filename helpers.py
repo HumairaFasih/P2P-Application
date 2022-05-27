@@ -1,5 +1,5 @@
 """ helpers.py
-This file contains helper functions to implement core functionalities.
+This module contains helper functions to implement core functionalities.
 """
 
 from json import dumps
