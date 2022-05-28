@@ -7,13 +7,14 @@ import hashlib
 import socket
 
 def hasher(self, key) -> int:
-        '''
-        Get the hashed value/key for any node/file
-        Usage:
-            For a node: self.hasher(node.host + str(node.port))
-            For a file: self.hasher(file)
-        '''
-        return int(hashlib.md5(key.encode()).hexdigest(), 16) % self.N
+    '''
+    Get the hashed value/key for any node/file
+    Usage:
+        For a node: self.hasher(node.host + str(node.port))
+        For a file: self.hasher(file)
+    '''
+    
+    return int(hashlib.md5(key.encode()).hexdigest(), 16) % self.N
 
 def format_msg(self, command: str, **kwargs) -> dict:
     ''' Format the information to be sent in a packet in JSON notation '''
