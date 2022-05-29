@@ -86,30 +86,3 @@ def forward_request(self, key, new_node_addr):
     msg = self.format_msg(
         "place_node", new_node_addr=new_node_addr, key=key)
     self.send_packet(self.successor, msg)
-
-
-def transfer_files(self, new_node_key, new_node):
-    ''' Transfer files to new node that joins the network '''
-
-    predecessor_key = self.hasher(
-        self.predecessor[0] + str(self.predecessor[1]))
-    new_node_file_list = []
-
-    # For each file that current node has, check whether the file should be relocated to the new node
-    # The above decision is made based on the file's key
-    #  All files that meet this condition are added to the list of files to be sent to the new node
-    for filename in self.files:
-
-        key = self.hasher(filename)
-        if ((new_node_key > predecessor_key and key < new_node_key and key > predecessor_key) or
-                (new_node_key < predecessor_key and not (key < predecessor_key and key > new_node_key))):
-
-            new_node_file_list.append(filename)
-
-    # Delete these files from current node's list of files after iteration
-    for filename in new_node_file_list:
-        self.files.remove(filename)
-
-    # Send the list to the new node
-    msg = self.format_msg("update_files", files_list=new_node_file_list)
-    self.send_packet(new_node, msg)
