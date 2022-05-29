@@ -1,15 +1,15 @@
 """" connection_handler.py
-This module handles incoming requests from other users to connect, and handles packets sent by them.
+This module handles incoming requests from other nodes to connect, and handles packets sent by them.
 """
 
 from json import dumps, loads
 import socket
 import threading
 
-# Called on the user that's joining the network
+# Called on the node that's joining the network
 def listener(self):
     '''
-    Accept connection made by other users.
+    Accept connection made by other nodes.
     For every inbound connection a new thread is initiated in the form of handle_connection function.
     '''
 
@@ -23,7 +23,7 @@ def listener(self):
         threading.Thread(target=self.handle_connection,
                             args=(client, addr)).start()
 
-    print("Shutting down user:", self.host, self.port)
+    print("Shutting down node:", self.host, self.port)
 
     try:
         listener.shutdown(2)
@@ -36,10 +36,10 @@ def handle_connection(self, client, addr):
 
     msg = loads(client.recv(4096).decode('utf-8'))
 
-    # Packet msgs related to user joining and file transfer functionality
-    if msg["command"] == "place_user":
+    # Packet msgs related to node joining and file transfer functionality
+    if msg["command"] == "place_node":
 
-        self.place_user(msg["key"], tuple(msg["new_user_addr"]))
+        self.place_node(msg["key"], tuple(msg["new_node_addr"]))
 
     elif msg["command"] == "update_both":
 
@@ -48,7 +48,7 @@ def handle_connection(self, client, addr):
 
     elif msg["command"] == "update_predecessor_and_files":
 
-        self.transfer_files(msg["new_user_key"], tuple(msg["predecessor"]))
+        self.transfer_files(msg["new_node_key"], tuple(msg["predecessor"]))
         self.predecessor = tuple(msg["predecessor"])
 
     elif msg["command"] == "update_files":
@@ -56,29 +56,29 @@ def handle_connection(self, client, addr):
         self.files.extend(msg["files_list"])
 
     # Packet msgs related to file placement functionality
-    elif msg["command"] == "lookup_put":
+    elif msg["command"] == "place_file_search":
 
-        var = self.find_user(
-            "put", msg["file"], tuple(msg["initial_sender"]))
+        var = self.find_node(
+            "place_file", msg["file"], tuple(msg["initial_sender"]))
         initial_sender = tuple(msg["initial_sender"])
 
         if var is not None:
-            msg = self.format_msg("lookup_put_response", resp_user=var)
+            msg = self.format_msg("fileplace_response", resp_node=var)
             self.send_packet(initial_sender, msg)
 
-    elif msg["command"] == "lookup_put_response":
+    elif msg["command"] == "fileplace_response":
 
-        self.queue_put.put(tuple(msg["resp_user"]))
+        self.placefile_queue.put(tuple(msg["resp_node"]))
 
     elif msg["command"] == "save_file":
 
         self.files.append(msg["file"])
 
     # Packet msgs related to file search functionality
-    elif msg["command"] == "lookup_get":
+    elif msg["command"] == "find_file_search":
 
-        var = self.find_user(
-            "get", msg["file"], tuple(msg["initial_sender"]))
+        var = self.find_node(
+            "find_file", msg["file"], tuple(msg["initial_sender"]))
         initial_sender = tuple(msg["initial_sender"])
 
         if var == "file not found":
@@ -86,18 +86,18 @@ def handle_connection(self, client, addr):
             self.send_packet(initial_sender, msg)
 
         elif var is not None:
-            msg = {"command": "lookup_get_response", "resp_user": var}
+            msg = self.format_msg("filesearch_response", resp_node=var)
             self.send_packet(initial_sender, msg)
 
-    elif msg["command"] == "lookup_get_response":
+    elif msg["command"] == "filesearch_response":
 
-        self.queue_get.put(tuple(msg["resp_user"]))
+        self.searchfile_queue.put(tuple(msg["resp_node"]))
 
     elif msg["command"] == "file_not_found":
 
-        self.queue_get.put(None)
+        self.searchfile_queue.put(None)
 
-    # Packet msgs related to user leave functionality
+    # Packet msgs related to node leave functionality
     elif msg["command"] == "update_successor":
 
         self.successor = tuple(msg["successor"])
@@ -113,7 +113,7 @@ def handle_connection(self, client, addr):
         msg = {"successor": self.successor, "files": self.files}
         client.send(dumps(msg).encode('utf-8'))
 
-    elif msg['command'] == "user_failure":
+    elif msg['command'] == "node_failure":
 
         self.predecessor = tuple(msg["new_predecessor"])
         self.files = msg["backup_files"]
