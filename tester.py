@@ -277,7 +277,7 @@ def printN(nodes):
 try:
     start_port = int(sys.argv[1])
 except:
-    print ("Run this script file as 'python check.py <port>' (where 1000 < port < 65500).")
+    print ("Run this script file as 'python tester.py <port>' (where 1000 < port < 65500).")
     os._exit(1)
 
 p = [start_port+0, start_port+1, start_port+2, start_port+3, start_port+4]
